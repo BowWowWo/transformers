@@ -44,6 +44,9 @@ class BaseModelOutput(ModelOutput):
     last_hidden_state: torch.FloatTensor = None
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
+    # added by Madina
+    encoder_embeddings: Optional[torch.FloatTensor] = None
+    decoder_embeddings: Optional[torch.FloatTensor] = None
 
 
 @dataclass
@@ -241,6 +244,8 @@ class BaseModelOutputWithPastAndCrossAttentions(ModelOutput):
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
+    # added by Madina
+    decoder_embeddings: Optional[torch.FloatTensor] = None
 
 
 @dataclass
@@ -302,7 +307,8 @@ class Seq2SeqModelOutput(ModelOutput):
     encoder_last_hidden_state: Optional[torch.FloatTensor] = None
     encoder_hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     encoder_attentions: Optional[Tuple[torch.FloatTensor]] = None
-
+    # added by Madina
+    encoder_embeddings: Optional[torch.FloatTensor] = None
 
 @dataclass
 class CausalLMOutput(ModelOutput):
@@ -536,7 +542,9 @@ class Seq2SeqLMOutput(ModelOutput):
     encoder_last_hidden_state: Optional[torch.FloatTensor] = None
     encoder_hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     encoder_attentions: Optional[Tuple[torch.FloatTensor]] = None
-
+    # added by Madina
+    encoder_embeddings: Optional[torch.FloatTensor] = None
+    decoder_embeddings: Optional[torch.FloatTensor] = None
 
 @dataclass
 class NextSentencePredictorOutput(ModelOutput):
