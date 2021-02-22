@@ -525,10 +525,12 @@ class FSMTEncoder(nn.Module):
 
         if output_hidden_states:
             encoder_states += (x,)
-        my_enc_embeddings = self.embed_tokens(input_ids) * self.embed_scale
+
         if not return_dict:
             return tuple(v for v in [x, encoder_states, all_attentions] if v is not None)
-        return BaseModelOutput(last_hidden_state=x, hidden_states=encoder_states, attentions=all_attentions), my_enc_embeddings
+        # added by Madina
+        encoder_embeddings = self.embed_tokens(input_ids) * self.embed_scale
+        return BaseModelOutput(last_hidden_state=x, hidden_states=encoder_states, attentions=all_attentions, encoder_embeddings=encoder_embeddings)
 
 
 class DecoderLayer(nn.Module):
@@ -772,18 +774,21 @@ class FSMTDecoder(nn.Module):
         x = self.output_projection(x)
 
         next_cache = next_decoder_cache if use_cache else None
-        my_dec_embeddings = self.embed_tokens(input_ids) * self.embed_scale
+
         if not return_dict:
             return tuple(
                 v for v in [x, next_cache, all_hidden_states, all_self_attns, all_cross_attns] if v is not None
             )
+        # added by Madina
+        decoder_embeddings = self.embed_tokens(input_ids) * self.embed_scale
         return BaseModelOutputWithPastAndCrossAttentions(
             last_hidden_state=x,
             past_key_values=next_cache,
             hidden_states=all_hidden_states,
             attentions=all_self_attns,
             cross_attentions=all_cross_attns,
-        ), my_dec_embeddings
+            decoder_embeddings=decoder_embeddings
+        )
 
 
 def _reorder_buffer(attn_cache, new_order):
@@ -1033,7 +1038,7 @@ class FSMTModel(PretrainedFSMTModel):
         assert decoder_input_ids is not None
 
         if encoder_outputs is None:
-            encoder_outputs, my_enc_embeddings = self.encoder(
+            encoder_outputs = self.encoder(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
                 head_mask=head_mask,
@@ -1050,7 +1055,7 @@ class FSMTModel(PretrainedFSMTModel):
             )
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
-        decoder_outputs, my_dec_embeddings = self.decoder(
+        decoder_outputs = self.decoder(
             decoder_input_ids,
             encoder_outputs[0],
             attention_mask,
@@ -1077,7 +1082,9 @@ class FSMTModel(PretrainedFSMTModel):
             encoder_last_hidden_state=encoder_outputs.last_hidden_state,
             encoder_hidden_states=encoder_outputs.hidden_states,
             encoder_attentions=encoder_outputs.attentions,
-        ), my_enc_embeddings, my_dec_embeddings
+            encoder_embeddings=encoder_outputs.encoder_embeddings,
+            decoder_embeddings=decoder_outputs.decoder_embeddings
+        )
 
     def get_input_embeddings(self):
         return self.encoder.embed_tokens
@@ -1157,7 +1164,7 @@ class FSMTForConditionalGeneration(PretrainedFSMTModel):
         if labels is not None:
             use_cache = False
 
-        outputs, my_enc_embeddings, my_dec_embeddings = self.model(
+        outputs = self.model(
             input_ids,
             attention_mask=attention_mask,
             decoder_input_ids=decoder_input_ids,
@@ -1193,7 +1200,9 @@ class FSMTForConditionalGeneration(PretrainedFSMTModel):
             encoder_last_hidden_state=outputs.encoder_last_hidden_state,
             encoder_hidden_states=outputs.encoder_hidden_states,
             encoder_attentions=outputs.encoder_attentions,
-        ), my_enc_embeddings, my_dec_embeddings
+            encoder_embeddings=outputs.encoder_embeddings,
+            decoder_embeddings=outputs.decoder_embeddings
+        )
 
     def prepare_inputs_for_generation(
         self, decoder_input_ids, past=None, attention_mask=None, use_cache=None, encoder_outputs=None, **kwargs
