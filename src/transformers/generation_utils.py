@@ -374,7 +374,7 @@ class GenerationMixin:
         self, input_ids: torch.LongTensor, model_kwargs
     ) -> Dict[str, Any]:
         # retrieve encoder hidden states
-        encoder,_ = self.get_encoder()
+        encoder = self.get_encoder()
         encoder_kwargs = {
             argument: value for argument, value in model_kwargs.items() if not argument.startswith("decoder_")
         }
