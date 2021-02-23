@@ -309,6 +309,7 @@ class Seq2SeqModelOutput(ModelOutput):
     encoder_attentions: Optional[Tuple[torch.FloatTensor]] = None
     # added by Madina
     encoder_embeddings: Optional[torch.FloatTensor] = None
+    decoder_embeddings: Optional[torch.FloatTensor] = None
 
 @dataclass
 class CausalLMOutput(ModelOutput):
