@@ -776,8 +776,11 @@ class MarianEncoder(MarianPreTrainedModel):
 
         if not return_dict:
             return tuple(v for v in [hidden_states, encoder_states, all_attentions] if v is not None)
+
+        encoder_embeddings = self.embed_tokens(input_ids) * self.embed_scale
         return BaseModelOutput(
-            last_hidden_state=hidden_states, hidden_states=encoder_states, attentions=all_attentions
+            last_hidden_state=hidden_states, hidden_states=encoder_states, attentions=all_attentions,
+            encoder_embeddings=encoder_embeddings
         )
 
 
@@ -1036,12 +1039,15 @@ class MarianDecoder(MarianPreTrainedModel):
                 for v in [hidden_states, next_cache, all_hidden_states, all_self_attns, all_cross_attentions]
                 if v is not None
             )
+
+        decoder_embeddings = self.embed_tokens(input_ids) * self.embed_scale
         return BaseModelOutputWithPastAndCrossAttentions(
             last_hidden_state=hidden_states,
             past_key_values=next_cache,
             hidden_states=all_hidden_states,
             attentions=all_self_attns,
             cross_attentions=all_cross_attentions,
+            decoder_embeddings=decoder_embeddings
         )
 
 
@@ -1164,6 +1170,8 @@ class MarianModel(MarianPreTrainedModel):
             encoder_last_hidden_state=encoder_outputs.last_hidden_state,
             encoder_hidden_states=encoder_outputs.hidden_states,
             encoder_attentions=encoder_outputs.attentions,
+            encoder_embeddings=encoder_outputs.encoder_embeddings,
+            decoder_embeddings=decoder_outputs.decoder_embeddings
         )
 
 
@@ -1294,6 +1302,9 @@ class MarianMTModel(MarianPreTrainedModel):
             encoder_last_hidden_state=outputs.encoder_last_hidden_state,
             encoder_hidden_states=outputs.encoder_hidden_states,
             encoder_attentions=outputs.encoder_attentions,
+            encoder_embeddings=outputs.encoder_embeddings,
+            decoder_embeddings=outputs.decoder_embeddings
+
         )
 
     def prepare_inputs_for_generation(
