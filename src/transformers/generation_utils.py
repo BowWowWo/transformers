@@ -1625,7 +1625,7 @@ class GenerationMixin:
         beam_scores = torch.zeros((batch_size, num_beams), dtype=torch.float, device=input_ids.device)
         beam_scores[:, 1:] = -1e9
         beam_scores = beam_scores.view((batch_size * num_beams,))
-
+        mylist=[] 
         while cur_len < max_length:
             model_inputs = self.prepare_inputs_for_generation(input_ids, **model_kwargs)
 
@@ -1636,7 +1636,7 @@ class GenerationMixin:
                 output_hidden_states=output_hidden_states,
             )
             next_token_logits = outputs.logits[:, -1, :]
-
+            mylist.append(outputs.decoder_embeddings) 
             # hack: adjust tokens for Marian. For Marian we have to make sure that the `pad_token_id`
             # cannot be generated both before and after the `F.log_softmax` operation.
             next_token_logits = self.adjust_logits_during_generation(
