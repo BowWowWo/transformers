@@ -418,7 +418,9 @@ class CausalLMOutputWithCrossAttentions(ModelOutput):
     hidden_states: Optional[Tuple[torch.FloatTensor]] = None
     attentions: Optional[Tuple[torch.FloatTensor]] = None
     cross_attentions: Optional[Tuple[torch.FloatTensor]] = None
-
+    # added by Madina
+    encoder_embeddings: Optional[torch.FloatTensor] = None
+    decoder_embeddings: Optional[torch.FloatTensor] = None
 
 @dataclass
 class SequenceClassifierOutputWithPast(ModelOutput):
